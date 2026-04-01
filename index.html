@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Manager Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; padding: 30px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        h2 { color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+
+        .form-group, .search-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        
+        input { flex: 1; padding: 12px; border: 1px solid #ccd1d1; border-radius: 6px; font-size: 14px; min-width: 150px; }
+        input:focus { border-color: #3498db; outline: none; box-shadow: 0 0 5px rgba(52,152,219,0.3); }
+
+        button { padding: 12px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        
+        .btn-add { background-color: #27ae60; }
+        .btn-add:hover { background-color: #219150; }
+        
+        .btn-export { background-color: #3498db; }
+        .btn-export:hover { background-color: #2980b9; }
+
+        .btn-delete { background-color: #e74c3c; padding: 8px 15px; font-size: 12px; }
+        .btn-delete:hover { background-color: #c0392b; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #34495e; color: white; padding: 15px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f9f9f9; }
+
+        .stock-critique { background-color: #fdf2f2 !important; border-left: 5px solid #e74c3c; }
+        .stock-critique td { color: #c0392b; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📦 Stock Manager Pro</h2>
+    
+    <div class="form-group">
+        <input id="nom" placeholder="Nom du produit">
+        <input id="quantite" type="number" placeholder="Quantité">
+        <button onclick="ajouter()" class="btn-add">＋ Ajouter</button>
+        <button onclick="exporterCSV()" class="btn-export">📊 Export Excel</button>
+    </div>
+
+    <div class="search-group">
+        <input id="recherche" placeholder="🔍 Rechercher une pièce ou un médicament..." onkeyup="filtrer()">
+    </div>
+
+    <table id="monTableau">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="corpsTableau"></tbody>
+    </table>
+</div>    
+
+<script>
+    // 1. AJOUTER
+    async function ajouter() {
+        const nomInput = document.getElementById("nom");
+        const quantiteInput = document.getElementById("quantite");
+
+        if (nomInput.value === "" || quantiteInput.value === "") {
+            alert("Veuillez remplir les deux cases !");
+            return;
+        }
+
+        await fetch("/add", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                nom: nomInput.value,
+                quantite: quantiteInput.value
+            })
+        });
+
+        nomInput.value = "";
+        quantiteInput.value = "";
+        afficher();
+    }
+
+    // 2. AFFICHER
+   async function afficher() {
+    let res = await fetch("/products");
+    let data = await res.json();
+
+    const corps = document.getElementById("corpsTableau");
+    corps.innerHTML = "";
+
+    data.forEach((p, i) => {
+        let classeAlerte = (parseInt(p.quantite) < 5) ? "stock-critique" : "";
+
+        corps.innerHTML += `
+            <tr class="${classeAlerte}">
+                <td><strong>${p.nom}</strong></td>
+                <td>${p.quantite}</td>
+                <td>
+                    <button class="btn-edit" onclick="modifier(${i}, '${p.nom}', ${p.quantite})">✏️</button>
+                    <button class="btn-delete" onclick="supprimer(${i})">🗑️</button>
+                </td>
+            </tr>`;
+    });
+}
+
+    // 3. SUPPRIMER
+    async function supprimer(i) {
+        await fetch("/delete/" + i, { method: "DELETE" });
+        afficher();
+    }
+
+    // 4. RECHERCHER / FILTRER
+    function filtrer() {
+        const saisie = document.getElementById("recherche").value.toLowerCase();
+        const lignes = document.getElementById("corpsTableau").getElementsByTagName("tr");
+
+        for (let i = 0; i < lignes.length; i++) {
+            const nomProduit = lignes[i].getElementsByTagName("td")[0].innerText.toLowerCase();
+            lignes[i].style.display = nomProduit.includes(saisie) ? "" : "none";
+        }
+    }
+
+    // 5. EXPORTER EXCEL
+    async function exporterCSV() {
+        let res = await fetch("/products");
+        let data = await res.json();
+        
+        let csvContent = "data:text/csv;charset=utf-8,Produit,Quantite\n";
+        data.forEach(p => {
+            csvContent += `${p.nom},${p.quantite}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "mon_stock.csv");
+        document.body.appendChild(link);
+        link.click();
+    }
+
+    // Lancer l'affichage au démarrage
+    afficher();
+
+function modifier(index, ancienNom, ancienneQuantite) {
+    const nouvelleQuantite = prompt(`Modifier la quantité pour ${ancienNom} :`, ancienneQuantite);
+    
+    if (nouvelleQuantite !== null && nouvelleQuantite !== "") {
+        // On va envoyer la mise à jour au serveur (on va créer cette route juste après)
+        mettreAJourServeur(index, ancienNom, nouvelleQuantite);
+    }
+}
+
+async function mettreAJourServeur(index, nom, quantite) {
+    await fetch("/update/" + index, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ nom, quantite })
+    });
+    afficher();
+}
+</script>
+
+</body>
+</html>
