@@ -1,13 +1,14 @@
 {
-  "name": "stock-manager-international",
-  "version": "1.0.0",
-  "description": "Système de gestion de stock multi-devises",
+  "name": "stock-app-pro",
+  "version": "2.0.0",
+  "description": "Système de Gestion de Stock et Caisse",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "uuid": "^9.0.1"
   }
 }

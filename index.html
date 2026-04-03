@@ -2,205 +2,169 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Manager Pro - International</title>
+    <title>Stock Manager Expert</title>
     <style>
-        :root {
-            --primary: #2c3e50; --secondary: #34495e; --accent: #3498db;
-            --danger: #e74c3c; --warning: #f39c12; --success: #27ae60;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #ddd; }
+        .card h3 { margin: 0; font-size: 14px; color: #7f8c8d; text-transform: uppercase; }
+        .card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; color: #2c3e50; }
         
-        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-
-        .summary-box { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
-        .valeur-item { background: white; padding: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 13px; }
-        .valeur-item strong { color: var(--success); display: block; font-size: 15px; }
-
-        .form-group, .search-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: #f1f4f6; padding: 15px; border-radius: 8px; }
-        input, select { flex: 1; padding: 12px; border: 1px solid #ccd1d1; border-radius: 6px; min-width: 120px; }
-
-        button { padding: 12px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-add { background: var(--success); }
-        .btn-export { background: var(--accent); }
-        .btn-vendre { background: var(--warning); margin-right: 5px; }
-        .btn-delete { background: var(--danger); }
-
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: var(--primary); color: white; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #ddd; }
-
-        .badge { padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .stock-ok { background: #d4edda; color: var(--success); }
-        .stock-low { background: #fff3cd; color: var(--warning); }
-        .stock-critique { background: #f8d7da; color: var(--danger); }
-
-        /* Modal Caisse */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
-        .history-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        .history-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px dashed #ccc; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; }
+        
+        .form-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; background: #ebf3f5; padding: 15px; border-radius: 8px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: #3498db; color: white; padding: 10px; }
+        .btn-sell { background: #2ecc71; color: white; padding: 5px 12px; }
+        
+        #reçu-zone { display: none; }
+        @media print { body * { display: none; } #reçu-zone { display: block; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🌍 Stock Manager Pro - Global</h2>
-
-    <div class="summary-box">
-        <strong>💰 Valeur Consolidée du Stock :</strong>
-        <div id="valeurTotale" class="summary-grid"></div>
-    </div>
-    
-    <div class="form-group">
-        <input id="nom" placeholder="Produit">
-        <input id="quantite" type="number" placeholder="Qté">
-        <input id="prix" type="number" placeholder="Prix">
-        <select id="devise">
-            <option value="FCFA">FCFA (XOF)</option>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="CNY">CNY (¥)</option>
-        </select>
-        <button onclick="ajouter()" class="btn-add">＋ Enregistrer</button>
+    <div class="dashboard">
+        <div class="card" style="border-color: #2ecc71;"><h3>Chiffre d'Affaires</h3><p id="stat-ca">0 FCFA</p></div>
+        <div class="card" style="border-color: #e67e22;"><h3>Bénéfice Net</h3><p id="stat-benef">0 FCFA</p></div>
+        <div class="card" style="border-color: #3498db;"><h3>Articles Vendus</h3><p id="stat-nb">0</p></div>
+        <div class="card" style="border-color: #9b59b6;"><h3>Valeur Stock</h3><p id="stat-stock">0 FCFA</p></div>
     </div>
 
-    <div class="search-group">
-        <input id="recherche" placeholder="🔍 Rechercher..." onkeyup="filtrer()">
-        <button onclick="exporterCSV()" class="btn-export">📊 Export Excel</button>
+    <div class="main-grid">
+        <div class="section">
+            <h2>📦 Ajouter un Produit</h2>
+            <div class="form-add">
+                <input id="new-nom" placeholder="Nom">
+                <input id="new-achat" type="number" placeholder="Prix Achat">
+                <input id="new-vente" type="number" placeholder="Prix Vente">
+                <input id="new-stock" type="number" placeholder="Stock">
+                <button onclick="ajouterProduit()" class="btn-add">Enregistrer</button>
+            </div>
+            
+            <h2>📋 Stock Actuel</h2>
+            <table>
+                <thead><tr><th>Nom</th><th>Vente</th><th>Stock</th><th>Action</th></tr></thead>
+                <tbody id="liste-produits"></tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🛒 Panier</h2>
+            <div id="panier-liste"></div>
+            <hr>
+            <h3>Total : <span id="total-panier">0</span> FCFA</h3>
+            <input type="number" id="montant-recu" placeholder="Argent reçu..." style="width:90%; padding:10px; font-size:18px;">
+            <p style="font-size:20px;">Rendu : <b id="monnaie-rendue" style="color:red">0</b> FCFA</p>
+            <button onclick="finaliserVente()" style="width:100%; background:#27ae60; color:white; padding:15px; border-radius:8px; font-size:18px;">ENCAISSER & TICKET</button>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Produit</th>
-                    <th>Prix</th>
-                    <th>Stock</th>
-                    <th>Total</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="corpsTableau"></tbody>
-        </table>
-    </div>
-
-    <div class="history-section">
-        <h3>📑 Dernières Ventes</h3>
-        <div id="listeHistorique"></div>
-    </div>
-</div>
-
-<div id="modalCaisse" class="modal">
-    <div class="modal-content">
-        <h3 id="caisseTitre">Caisse</h3>
-        <p>Total : <span id="caissePrixTotal">0</span> <span id="caisseDevise"></span></p>
-        <input id="qteVente" type="number" placeholder="Quantité à vendre" oninput="calculerCaisse()">
-        <input id="montantRecu" type="number" placeholder="Montant reçu" oninput="calculerCaisse()">
-        <div style="font-size: 20px; color: var(--danger); margin: 15px 0;">Rendu : <span id="monnaieARendre">0</span></div>
-        <button onclick="validerVente()" class="btn-add">Valider la vente</button>
-        <button onclick="fermerCaisse()" style="background:#95a5a6">Annuler</button>
-    </div>
-</div>
+    <div id="reçu-zone"></div>
 
 <script>
-    const TAUX = { "USD": 1, "FCFA": 600, "EUR": 0.92, "GBP": 0.79, "CNY": 7.24 };
-    let historique = JSON.parse(localStorage.getItem('histo')) || [];
-    let produitActuel = null;
+    let produits = [];
+    let panier = [];
 
-    async function ajouter() {
-        const nom = document.getElementById("nom").value;
-        const quantite = document.getElementById("quantite").value;
-        const prix = document.getElementById("prix").value;
-        const devise = document.getElementById("devise").value;
-        if (!nom || !quantite || !prix) return alert("Champs vides !");
-
-        await fetch("/add", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ nom, quantite, prix, devise })
-        });
-        afficher();
+    async function chargerDonnees() {
+        const resP = await fetch('/api/produits');
+        produits = await resP.json();
+        
+        const resS = await fetch('/api/stats');
+        const stats = await resS.json();
+        
+        // Mise à jour du bilan
+        document.getElementById('stat-ca').innerText = stats.caTotal.toLocaleString() + " FCFA";
+        document.getElementById('stat-benef').innerText = stats.benefice.toLocaleString() + " FCFA";
+        document.getElementById('stat-nb').innerText = stats.nbVendus;
+        document.getElementById('stat-stock').innerText = stats.valeurStock.toLocaleString() + " FCFA";
+        
+        afficherProduits();
     }
 
-    async function afficher() {
-        let res = await fetch("/products");
-        let data = await res.json();
-        const corps = document.getElementById("corpsTableau");
-        corps.innerHTML = "";
-        let totalUSD = 0;
-
-        data.forEach((p, i) => {
-            let totalLigne = p.quantite * p.prix;
-            totalUSD += totalLigne / TAUX[p.devise];
-            let sClass = p.quantite <= 0 ? "stock-critique" : (p.quantite < 5 ? "stock-low" : "stock-ok");
-
-            corps.innerHTML += `
-                <tr>
-                    <td><strong>${p.nom}</strong></td>
-                    <td>${p.prix} ${p.devise}</td>
-                    <td><span class="badge ${sClass}">${p.quantite}</span></td>
-                    <td>${totalLigne.toLocaleString()} ${p.devise}</td>
-                    <td>
-                        <button class="btn-vendre" onclick="ouvrirCaisse(${i},'${p.nom}',${p.prix},'${p.devise}',${p.quantite})">🛒</button>
-                        <button class="btn-delete" onclick="supprimer(${i})">🗑️</button>
-                    </td>
-                </tr>`;
-        });
-
-        document.getElementById("valeurTotale").innerHTML = `
-            <div class="valeur-item">FCFA <strong>${Math.round(totalUSD * TAUX.FCFA).toLocaleString()}</strong></div>
-            <div class="valeur-item">USD <strong>${totalUSD.toFixed(2)} $</strong></div>
-            <div class="valeur-item">EUR <strong>${(totalUSD * TAUX.EUR).toFixed(2)} €</strong></div>
-        `;
-        majHisto();
-    }
-
-    function ouvrirCaisse(index, nom, prix, devise, qteMax) {
-        produitActuel = { index, nom, prix, devise, qteMax };
-        document.getElementById("caisseTitre").innerText = nom;
-        document.getElementById("caisseDevise").innerText = devise;
-        document.getElementById("modalCaisse").style.display = "block";
-    }
-
-    function calculerCaisse() {
-        const qte = document.getElementById("qteVente").value || 0;
-        const recu = document.getElementById("montantRecu").value || 0;
-        const total = qte * produitActuel.prix;
-        document.getElementById("caissePrixTotal").innerText = total.toLocaleString();
-        document.getElementById("monnaieARendre").innerText = (recu - total).toLocaleString();
-    }
-
-    async function validerVente() {
-        const qteV = parseInt(document.getElementById("qteVente").value);
-        if (qteV > produitActuel.qteMax || qteV <= 0) return alert("Quantité incorrecte");
-
-        await fetch("/update/" + produitActuel.index, {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ ...produitActuel, quantite: produitActuel.qteMax - qteV })
-        });
-
-        historique.unshift({ date: new Date().toLocaleTimeString(), nom: produitActuel.nom, total: qteV * produitActuel.prix, dev: produitActuel.devise });
-        localStorage.setItem('histo', JSON.stringify(historique.slice(0,5)));
-        fermerCaisse();
-        afficher();
-    }
-
-    function fermerCaisse() { document.getElementById("modalCaisse").style.display = "none"; }
-    function majHisto() {
-        document.getElementById("listeHistorique").innerHTML = historique.map(h => `
-            <div class="history-item"><span>${h.date} - ${h.nom}</span> <b>+${h.total} ${h.dev}</b></div>
+    function afficherProduits() {
+        document.getElementById('liste-produits').innerHTML = produits.map(p => `
+            <tr>
+                <td><b>${p.nom}</b></td>
+                <td>${p.prix} FCFA</td>
+                <td>${p.stock}</td>
+                <td><button class="btn-sell" onclick="ajouterAuPanier('${p.nom}')">Ajouter</button></td>
+            </tr>
         `).join('');
     }
-    async function supprimer(i) { if(confirm("Supprimer ?")) { await fetch("/delete/"+i, {method:"DELETE"}); afficher(); } }
-    function filtrer() { /* (Même logique de filtre que précédemment) */ }
-    afficher();
+
+    async function ajouterProduit() {
+        const nouveau = {
+            nom: document.getElementById('new-nom').value,
+            prixAchat: parseInt(document.getElementById('new-achat').value),
+            prix: parseInt(document.getElementById('new-vente').value),
+            stock: parseInt(document.getElementById('new-stock').value),
+            devise: "FCFA"
+        };
+        await fetch('/api/ajouter', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(nouveau)
+        });
+        location.reload();
+    }
+
+    function ajouterAuPanier(nom) {
+        const p = produits.find(prod => prod.nom === nom);
+        const item = panier.find(i => i.nom === nom);
+        if(item) item.quantite++; else panier.push({...p, quantite: 1});
+        majCaisse();
+    }
+
+    function majCaisse() {
+        const total = panier.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+        document.getElementById('total-panier').innerText = total;
+        document.getElementById('panier-liste').innerHTML = panier.map(i => `<p>• ${i.nom} x${i.quantite}</p>`).join('');
+        
+        document.getElementById('montant-recu').oninput = (e) => {
+            const rendu = e.target.value - total;
+            document.getElementById('monnaie-rendue').innerText = rendu > 0 ? rendu : 0;
+        };
+    }
+
+    async function finaliserVente() {
+        const total = parseInt(document.getElementById('total-panier').innerText);
+        const encaisse = parseInt(document.getElementById('montant-recu').value);
+        if(!encaisse) return alert("Entrez le montant reçu !");
+
+        const res = await fetch('/api/vendre', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ panier, total, encaisse, monnaie: encaisse - total })
+        });
+        const data = await res.json();
+        if(data.success) {
+            imprimerTicket(data.ticket);
+            location.reload();
+        }
+    }
+
+    function imprimerTicket(t) {
+        document.getElementById('reçu-zone').innerHTML = `
+            <div style="width:80mm; padding:10px; font-family:monospace;">
+                <center><h3>REÇU DE VENTE</h3><p>${t.date}</p><p>ID: ${t.id}</p></center>
+                <hr>
+                ${t.articles.map(a => `<p>${a.nom} x${a.quantite} : ${a.prix*a.quantite} FCFA</p>`).join('')}
+                <hr>
+                <p><b>TOTAL: ${t.total} FCFA</b></p>
+                <p>Reçu: ${t.encaisse} | Rendu: ${t.monnaie}</p>
+                <center><p>MERCI DE VOTRE CONFIANCE</p></center>
+            </div>
+        `;
+        window.print();
+    }
+
+    chargerDonnees();
 </script>
 </body>
 </html>
