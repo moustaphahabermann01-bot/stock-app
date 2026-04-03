@@ -11,16 +11,17 @@ app.use(express.static('.'));
 const DATA_FILE = './produits.json';
 const VENTES_FILE = './ventes.json';
 
-// Initialisation des fichiers s'ils n'existent pas
+// Initialisation sécurisée des fichiers
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
 if (!fs.existsSync(VENTES_FILE)) fs.writeFileSync(VENTES_FILE, '[]');
 
+// 1. Lire les produits
 app.get('/api/produits', (req, res) => {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     res.json(data);
 });
 
-// NOUVEAU : Route pour le BILAN TOTAL
+// 2. Calculer le BILAN (Stats)
 app.get('/api/stats', (req, res) => {
     const produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const ventes = JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'));
@@ -29,7 +30,6 @@ app.get('/api/stats', (req, res) => {
     const nbVendus = ventes.reduce((sum, v) => sum + v.articles.reduce((s, a) => s + a.quantite, 0), 0);
     const valeurStock = produits.reduce((sum, p) => sum + (p.stock * p.prix), 0);
     
-    // Calcul du bénéfice (Prix vente - Prix achat)
     let benefice = 0;
     ventes.forEach(v => {
         v.articles.forEach(art => {
@@ -41,6 +41,7 @@ app.get('/api/stats', (req, res) => {
     res.json({ caTotal, nbVendus, valeurStock, benefice });
 });
 
+// 3. Enregistrer une vente
 app.post('/api/vendre', (req, res) => {
     const { panier, total, encaisse, monnaie } = req.body;
     let produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -49,7 +50,7 @@ app.post('/api/vendre', (req, res) => {
     const nouvelleVente = {
         id: uuidv4().slice(0, 8),
         date: new Date().toLocaleString(),
-        articles: panier, // Contient prix et prixAchat pour le calcul du bilan
+        articles: panier,
         total, encaisse, monnaie
     };
 
@@ -64,7 +65,7 @@ app.post('/api/vendre', (req, res) => {
     res.json({ success: true, ticket: nouvelleVente });
 });
 
-// Route pour ajouter un produit avec PRIX ACHAT
+// 4. Ajouter un produit (NOUVELLE ROUTE)
 app.post('/api/ajouter', (req, res) => {
     const nouveau = req.body;
     let produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));

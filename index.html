@@ -9,20 +9,15 @@
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #ddd; }
         .card h3 { margin: 0; font-size: 14px; color: #7f8c8d; text-transform: uppercase; }
         .card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; color: #2c3e50; }
-        
         .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; }
-        
         .form-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; background: #ebf3f5; padding: 15px; border-radius: 8px; }
         input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+        button { cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
         .btn-add { background: #3498db; color: white; padding: 10px; }
         .btn-sell { background: #2ecc71; color: white; padding: 5px 12px; }
-        
         #reçu-zone { display: none; }
         @media print { body * { display: none; } #reçu-zone { display: block; } }
     </style>
@@ -30,7 +25,7 @@
 <body>
 
     <div class="dashboard">
-        <div class="card" style="border-color: #2ecc71;"><h3>Chiffre d'Affaires</h3><p id="stat-ca">0 FCFA</p></div>
+        <div class="card" style="border-color: #2ecc71;"><h3>Ventes Totales</h3><p id="stat-ca">0 FCFA</p></div>
         <div class="card" style="border-color: #e67e22;"><h3>Bénéfice Net</h3><p id="stat-benef">0 FCFA</p></div>
         <div class="card" style="border-color: #3498db;"><h3>Articles Vendus</h3><p id="stat-nb">0</p></div>
         <div class="card" style="border-color: #9b59b6;"><h3>Valeur Stock</h3><p id="stat-stock">0 FCFA</p></div>
@@ -38,30 +33,29 @@
 
     <div class="main-grid">
         <div class="section">
-            <h2>📦 Ajouter un Produit</h2>
+            <h2>📦 Nouveau Produit</h2>
             <div class="form-add">
-                <input id="new-nom" placeholder="Nom">
-                <input id="new-achat" type="number" placeholder="Prix Achat">
-                <input id="new-vente" type="number" placeholder="Prix Vente">
-                <input id="new-stock" type="number" placeholder="Stock">
-                <button onclick="ajouterProduit()" class="btn-add">Enregistrer</button>
+                <input id="new-nom" placeholder="Nom du produit">
+                <input id="new-achat" type="number" placeholder="Prix d'Achat">
+                <input id="new-vente" type="number" placeholder="Prix de Vente">
+                <input id="new-stock" type="number" placeholder="Quantité Stock">
+                <button onclick="ajouterProduit()" class="btn-add">ENREGISTRER</button>
             </div>
-            
-            <h2>📋 Stock Actuel</h2>
+            <h2>📋 Inventaire</h2>
             <table>
-                <thead><tr><th>Nom</th><th>Vente</th><th>Stock</th><th>Action</th></tr></thead>
+                <thead><tr><th>Nom</th><th>Prix Vente</th><th>Stock</th><th>Action</th></tr></thead>
                 <tbody id="liste-produits"></tbody>
             </table>
         </div>
 
         <div class="section">
-            <h2>🛒 Panier</h2>
+            <h2>🛒 Panier (Caisse)</h2>
             <div id="panier-liste"></div>
             <hr>
             <h3>Total : <span id="total-panier">0</span> FCFA</h3>
-            <input type="number" id="montant-recu" placeholder="Argent reçu..." style="width:90%; padding:10px; font-size:18px;">
-            <p style="font-size:20px;">Rendu : <b id="monnaie-rendue" style="color:red">0</b> FCFA</p>
-            <button onclick="finaliserVente()" style="width:100%; background:#27ae60; color:white; padding:15px; border-radius:8px; font-size:18px;">ENCAISSER & TICKET</button>
+            <input type="number" id="montant-recu" placeholder="Montant reçu client..." style="width:100%; padding:10px; margin-bottom:10px;">
+            <p>Rendu : <b id="monnaie-rendue" style="color:red">0</b> FCFA</p>
+            <button onclick="finaliserVente()" style="width:100%; background:#27ae60; color:white; padding:15px; font-size:18px;">PAYER & TICKET</button>
         </div>
     </div>
 
@@ -74,11 +68,9 @@
     async function chargerDonnees() {
         const resP = await fetch('/api/produits');
         produits = await resP.json();
-        
         const resS = await fetch('/api/stats');
         const stats = await resS.json();
         
-        // Mise à jour du bilan
         document.getElementById('stat-ca').innerText = stats.caTotal.toLocaleString() + " FCFA";
         document.getElementById('stat-benef').innerText = stats.benefice.toLocaleString() + " FCFA";
         document.getElementById('stat-nb').innerText = stats.nbVendus;
@@ -93,7 +85,7 @@
                 <td><b>${p.nom}</b></td>
                 <td>${p.prix} FCFA</td>
                 <td>${p.stock}</td>
-                <td><button class="btn-sell" onclick="ajouterAuPanier('${p.nom}')">Ajouter</button></td>
+                <td><button class="btn-sell" onclick="ajouterAuPanier('${p.nom}')">+</button></td>
             </tr>
         `).join('');
     }
@@ -103,8 +95,7 @@
             nom: document.getElementById('new-nom').value,
             prixAchat: parseInt(document.getElementById('new-achat').value),
             prix: parseInt(document.getElementById('new-vente').value),
-            stock: parseInt(document.getElementById('new-stock').value),
-            devise: "FCFA"
+            stock: parseInt(document.getElementById('new-stock').value)
         };
         await fetch('/api/ajouter', {
             method: 'POST',
@@ -124,8 +115,7 @@
     function majCaisse() {
         const total = panier.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
         document.getElementById('total-panier').innerText = total;
-        document.getElementById('panier-liste').innerHTML = panier.map(i => `<p>• ${i.nom} x${i.quantite}</p>`).join('');
-        
+        document.getElementById('panier-liste').innerHTML = panier.map(i => `<p>${i.nom} x${i.quantite} (${i.prix * i.quantite} FCFA)</p>`).join('');
         document.getElementById('montant-recu').oninput = (e) => {
             const rendu = e.target.value - total;
             document.getElementById('monnaie-rendue').innerText = rendu > 0 ? rendu : 0;
@@ -152,13 +142,12 @@
     function imprimerTicket(t) {
         document.getElementById('reçu-zone').innerHTML = `
             <div style="width:80mm; padding:10px; font-family:monospace;">
-                <center><h3>REÇU DE VENTE</h3><p>${t.date}</p><p>ID: ${t.id}</p></center>
+                <center><h3>REÇU</h3><p>${t.date}</p></center>
                 <hr>
                 ${t.articles.map(a => `<p>${a.nom} x${a.quantite} : ${a.prix*a.quantite} FCFA</p>`).join('')}
                 <hr>
-                <p><b>TOTAL: ${t.total} FCFA</b></p>
-                <p>Reçu: ${t.encaisse} | Rendu: ${t.monnaie}</p>
-                <center><p>MERCI DE VOTRE CONFIANCE</p></center>
+                <p>TOTAL: ${t.total} FCFA</p>
+                <p>REÇU: ${t.encaisse} | RENDU: ${t.monnaie}</p>
             </div>
         `;
         window.print();
