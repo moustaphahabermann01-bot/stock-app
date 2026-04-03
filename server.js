@@ -5,41 +5,28 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(express.static('.')); // Permet de lire index.html directement
 
 const DATA_FILE = "produits.json";
 
-function lireDonnees() {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8") || "[]");
-}
+function lire() { return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8") || "[]"); }
+function ecrire(d) { fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2)); }
 
-function sauvegarderDonnees(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-app.get("/products", (req, res) => res.json(lireDonnees()));
+app.get("/products", (req, res) => res.json(lire()));
 
 app.post("/add", (req, res) => {
-    let produits = lireDonnees();
-    produits.push(req.body);
-    sauvegarderDonnees(produits);
-    res.send("Ajouté");
+    let p = lire(); p.push(req.body); ecrire(p);
+    res.send("OK");
+});
+
+app.put("/update/:index", (req, res) => {
+    let p = lire(); p[req.params.index] = req.body; ecrire(p);
+    res.send("OK");
 });
 
 app.delete("/delete/:index", (req, res) => {
-    let produits = lireDonnees();
-    produits.splice(req.params.index, 1);
-    sauvegarderDonnees(produits);
-    res.send("Supprimé");
+    let p = lire(); p.splice(req.params.index, 1); ecrire(p);
+    res.send("OK");
 });
 
-// VÉRIFIE BIEN QUE CETTE ROUTE EST LÀ :
-app.put("/update/:index", (req, res) => {
-    let produits = lireDonnees();
-    produits[req.params.index] = req.body;
-    sauvegarderDonnees(produits);
-    res.send("Mis à jour");
-});
-
-app.listen(3000, () => console.log("Serveur lancé sur le port 3000"));
-
-app.use(express.static('.'));
+app.listen(3000, () => console.log("Lien local: http://localhost:3000"));
