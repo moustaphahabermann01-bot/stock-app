@@ -157,30 +157,44 @@
     }
 
     async function encaisser() {
-       const totalStr = document.getElementById('total-panier').innerText;
-// Nettoyage complet : on enlève les espaces et les virgules (',')
-const total = parseInt(totalStr.replace(/[\s,]/g, ''));
-       const recu = parseInt(document.getElementById('pay-recu').value);
-        if(recu < total) return alert("Montant insuffisant !");
+    try {
+        const totalStr = document.getElementById('total-panier').innerText;
+        const total = parseInt(totalStr.replace(/[\s,]/g, '')); 
+        const recu = parseInt(document.getElementById('pay-recu').value);
+
+        if (panier.length === 0 || !recu || recu < total) {
+            alert("⚠️ Vérifiez le panier ou le montant reçu !");
+            return;
+        }
 
         const res = await fetch('/api/vendre', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ panier, total, encaisse: recu, monnaie: recu - total })
         });
         const data = await res.json();
 
-        // Préparation ticket
-        document.getElementById('t-date').innerText = data.ticket.date;
-        document.getElementById('t-id').innerText = "Vente ID: " + data.ticket.id;
-        document.getElementById('t-total').innerText = "TOTAL: " + total + " FCFA";
-        document.getElementById('t-list').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite}</div>`).join('');
-        
-        QRCode.toCanvas(document.getElementById('t-qr'), "VENTE-" + data.ticket.id, function () {
-            window.print();
-            location.reload();
-        });
+        if (data.success) {
+            // --- ON REMPLIT LE TICKET ---
+            document.getElementById('t-date').innerText = "Date: " + data.ticket.date;
+            document.getElementById('t-id').innerText = "Vente ID: " + data.ticket.id;
+            document.getElementById('t-total').innerText = "TOTAL: " + total.toLocaleString() + " FCFA";
+            document.getElementById('t-list').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite}</div>`).join('');
+            
+            // --- ON GÉNÈRE LE QR CODE ---
+            const qrCanvas = document.getElementById('t-qr');
+            await QRCode.toCanvas(qrCanvas, "VENTE-" + data.ticket.id, { width: 150 });
+
+            // --- LE SECRET : ON ATTEND UN PEU AVANT D'IMPRIMER ---
+            setTimeout(() => {
+                window.print();
+                location.reload(); 
+            }, 500); // On attend 0.5 seconde pour que le QR Code apparaisse
+        }
+    } catch (error) {
+        alert("Erreur technique, vérifiez la console F12");
     }
+}
 
     function afficherTransactions(ventes) {
         document.getElementById('table-ventes').innerHTML = ventes.map(v => `

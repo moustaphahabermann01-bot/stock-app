@@ -1,17 +1,1 @@
-[
-  {
-    "nom": "Lampe",
-    "prix": 3000,
-    "stock": 50
-  },
-  {
-    "nom": "Moteur",
-    "prix": 60000,
-    "stock": 30
-  },
-  {
-    "nom": "Pompe",
-    "prix": 35000,
-    "stock": 28
-  }
-]
+[]
