@@ -157,7 +157,9 @@
     }
 
     async function encaisser() {
-       const totalStr = document.getElementById('total-panier').innerText; // Nettoyage complet : on enlève les espaces et les virgules (',') const total = parseInt(totalStr.replace(/[\s,]/g, ''));
+       const totalStr = document.getElementById('total-panier').innerText;
+// Nettoyage complet : on enlève les espaces et les virgules (',')
+const total = parseInt(totalStr.replace(/[\s,]/g, ''));
        const recu = parseInt(document.getElementById('pay-recu').value);
         if(recu < total) return alert("Montant insuffisant !");
 
