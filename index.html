@@ -157,8 +157,8 @@
     }
 
     async function encaisser() {
-        const total = parseInt(document.getElementById('total-panier').innerText.replace(/\s/g, ''));
-        const recu = parseInt(document.getElementById('pay-recu').value);
+       const totalStr = document.getElementById('total-panier').innerText; // Nettoyage complet : on enlève les espaces et les virgules (',') const total = parseInt(totalStr.replace(/[\s,]/g, ''));
+       const recu = parseInt(document.getElementById('pay-recu').value);
         if(recu < total) return alert("Montant insuffisant !");
 
         const res = await fetch('/api/vendre', {
