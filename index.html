@@ -2,134 +2,123 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Business Manager Pro</title>
+    <title>Logiciel de Gestion Universel</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         :root { --dark: #2c3e50; --green: #27ae60; --red: #e74c3c; --blue: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         
+        .header-bar { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
         .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
         .card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card h3 { margin: 0; font-size: 13px; color: #7f8c8d; text-transform: uppercase; }
-        .card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; }
-
-        .converter { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; gap: 15px; align-items: center; justify-content: center; }
         
         .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
         .section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
 
-        .benef-neg { color: var(--red); }
-        .benef-pos { color: var(--green); }
+        .benef-neg { color: var(--red); font-weight: bold; }
+        .benef-pos { color: var(--green); font-weight: bold; }
 
-        #ticket-print { display: none; text-align: center; font-family: monospace; padding: 20px; width: 300px; border: 1px solid #000; }
-        @media print { body * { display: none; } #ticket-print { display: block; margin: auto; } }
+        #ticket-print { display: none; text-align: center; padding: 20px; border: 1px solid #000; width: 280px; background: white; }
+        @media print { body * { display: none !important; } #ticket-print, #ticket-print * { display: block !important; } }
     </style>
 </head>
 <body>
 
-    <div class="converter">
-        <strong>💱 CONVERTISSEUR :</strong>
-        <input type="number" id="conv-fcfa" placeholder="Somme en FCFA" oninput="convertir()">
-        <select id="conv-vers" onchange="convertir()">
-            <option value="655.95">EURO (€)</option>
-            <option value="610">USD ($)</option>
-            <option value="780">GBP (£)</option>
-            <option value="85">CNY (¥)</option>
-            <option value="165">AED (DH)</option>
-        </select>
-        <span id="conv-result" style="color: #2ecc71; font-weight: bold; font-size: 1.2em;">0.00</span>
+    <div class="header-bar">
+        <h2>Business Manager Pro</h2>
+        <div>
+            🌍 Devise : 
+            <select id="devise-globale" onchange="changerDevise(this.value)" style="padding: 5px; border-radius: 5px;">
+                <option value="FCFA">FCFA (Afrique)</option>
+                <option value="€">EURO (€)</option>
+                <option value="$">DOLLAR ($)</option>
+                <option value="£">LIVRE (£)</option>
+                <option value="DH">DIRHAM (DH)</option>
+            </select>
+        </div>
     </div>
 
     <div class="dashboard">
-        <div class="card"><h3>Investissement</h3><input type="number" id="invest-input" onchange="majInvestissement(this.value)" style="width:100px; text-align:center;"></div>
-        <div class="card"><h3>Ventes Totales</h3><p id="st-ca">0 FCFA</p></div>
-        <div class="card"><h3>Bénéfice Réel</h3><p id="st-benef">0 FCFA</p></div>
-        <div class="card"><h3>Valeur Stock</h3><p id="st-stock">0 FCFA</p></div>
+        <div class="card"><h3>Investissement</h3><input type="number" id="invest-input" onchange="majInvest(this.value)" style="width:100px; text-align:center;"></div>
+        <div class="card"><h3>Ventes</h3><p id="st-ca">0</p></div>
+        <div class="card"><h3>Bénéfice Réel</h3><p id="st-benef">0</p></div>
+        <div class="card"><h3>Valeur Stock</h3><p id="st-stock">0</p></div>
     </div>
 
     <div class="main-grid">
         <div class="section">
-            <h2>📦 Gestion du Stock</h2>
+            <h2>📦 Inventaire</h2>
             <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <input id="p-nom" placeholder="Nom du produit">
+                <input id="p-nom" placeholder="Nom">
                 <input id="p-prix" type="number" placeholder="Prix Vente">
                 <input id="p-qty" type="number" placeholder="Quantité">
-                <button onclick="ajouterProduit()" style="background:var(--blue); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">AJOUTER</button>
+                <button onclick="ajouter()" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Ajouter</button>
             </div>
             <table>
                 <thead><tr><th>Produit</th><th>Prix</th><th>Stock</th><th>Action</th></tr></thead>
-                <tbody id="table-produits"></tbody>
+                <tbody id="p-liste"></tbody>
             </table>
         </div>
 
         <div class="section">
-            <h2>🛒 Caisse Rapide</h2>
-            <div id="panier-liste" style="min-height:150px; border-bottom:1px solid #eee;"></div>
-            <h2 style="text-align:right;">Total: <span id="total-panier">0</span> FCFA</h2>
-            <input type="number" id="pay-recu" placeholder="Montant reçu client" style="width:100%; padding:15px; font-size:18px; box-sizing:border-box;">
+            <h2>🛒 Caisse</h2>
+            <div id="panier-liste" style="min-height:150px;"></div>
+            <hr>
+            <h2 id="total-panier-display">Total: 0</h2>
+            <input type="number" id="pay-recu" placeholder="Montant reçu" style="width:100%; padding:10px; font-size:18px;">
             <button onclick="encaisser()" style="width:100%; background:var(--green); color:white; border:none; padding:15px; margin-top:15px; border-radius:8px; font-size:18px; cursor:pointer;">PAYER & TICKET (QR)</button>
         </div>
     </div>
 
     <div class="section" style="margin-top:20px;">
-        <h2>📜 Historique des Transactions</h2>
-        <table>
-            <thead><tr><th>Date</th><th>ID</th><th>Articles</th><th>Total</th></tr></thead>
-            <tbody id="table-ventes"></tbody>
-        </table>
+        <h2>📜 Transactions Récentes</h2>
+        <table id="table-ventes"></table>
     </div>
 
     <div id="ticket-print">
-        <h3>TICKET DE CAISSE</h3>
+        <h3 id="t-shop-name">MON BUSINESS</h3>
         <p id="t-date"></p>
         <p id="t-id"></p>
         <hr>
-        <div id="t-list"></div>
+        <div id="t-list" style="text-align:left;"></div>
         <hr>
         <h3 id="t-total"></h3>
-        <canvas id="t-qr"></canvas>
+        <canvas id="t-qr" style="margin: 10px auto;"></canvas>
         <p>Merci de votre visite !</p>
     </div>
 
 <script>
-    let produits = [], panier = [];
+    let produits = [], panier = [], devise = "FCFA";
 
     async function rafraichir() {
         const stats = await (await fetch('/api/stats')).json();
         produits = await (await fetch('/api/produits')).json();
         const ventes = await (await fetch('/api/ventes')).json();
+        devise = stats.devise;
 
+        document.getElementById('devise-globale').value = devise;
         document.getElementById('invest-input').value = stats.investissement;
-        document.getElementById('st-ca').innerText = stats.caTotal.toLocaleString() + " FCFA";
-        document.getElementById('st-stock').innerText = stats.valeurStock.toLocaleString() + " FCFA";
+        document.getElementById('st-ca').innerText = stats.caTotal.toLocaleString() + " " + devise;
+        document.getElementById('st-stock').innerText = stats.valeurStock.toLocaleString() + " " + devise;
         
         const b = document.getElementById('st-benef');
-        b.innerText = stats.beneficeReel.toLocaleString() + " FCFA";
+        b.innerText = stats.beneficeReel.toLocaleString() + " " + devise;
         b.className = stats.beneficeReel >= 0 ? "benef-pos" : "benef-neg";
 
         afficherProduits();
         afficherTransactions(ventes);
     }
 
-    function convertir() {
-        const m = document.getElementById('conv-fcfa').value;
-        const v = document.getElementById('conv-vers').value;
-        document.getElementById('conv-result').innerText = (m / v).toFixed(2);
-    }
-
-    async function majInvestissement(val) {
-        await fetch('/api/investissement', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({montant: parseInt(val)}) });
-        rafraichir();
-    }
-
     function afficherProduits() {
-        document.getElementById('table-produits').innerHTML = produits.map(p => `
-            <tr><td><b>${p.nom}</b></td><td>${p.prix} FCFA</td><td>${p.stock}</td>
-            <td><button onclick="addPanier('${p.nom}')" style="cursor:pointer;">+</button></td></tr>
+        document.getElementById('p-liste').innerHTML = produits.map(p => `
+            <tr><td><b>${p.nom}</b></td><td>${p.prix.toLocaleString()} ${devise}</td><td>${p.stock}</td>
+            <td>
+                <button onclick="addPanier('${p.nom}')">+</button>
+                <button onclick="supprimer('${p.nom}')" style="background:var(--red); color:white; border:none; border-radius:3px; cursor:pointer;">🗑️</button>
+            </td></tr>
         `).join('');
     }
 
@@ -142,65 +131,61 @@
 
     function majCaisse() {
         const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
-        document.getElementById('total-panier').innerText = total.toLocaleString();
-        document.getElementById('panier-liste').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite} (${i.prix*i.quantite} FCFA)</div>`).join('');
+        document.getElementById('total-panier-display').innerText = "Total: " + total.toLocaleString() + " " + devise;
+        document.getElementById('panier-liste').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite} (${(i.prix*i.quantite).toLocaleString()} ${devise})</div>`).join('');
     }
 
-    async function ajouterProduit() {
-        const p = {
-            nom: document.getElementById('p-nom').value,
-            prix: parseInt(document.getElementById('p-prix').value),
-            stock: parseInt(document.getElementById('p-qty').value)
-        };
+    async function supprimer(nom) {
+        if(confirm(`Supprimer ${nom} ?`)) {
+            await fetch(`/api/produits/${encodeURIComponent(nom)}`, { method:'DELETE' });
+            rafraichir();
+        }
+    }
+
+    async function changerDevise(val) {
+        await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({devise: val}) });
+        rafraichir();
+    }
+
+    async function majInvest(val) {
+        await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({investissement: parseInt(val)}) });
+        rafraichir();
+    }
+
+    async function ajouter() {
+        const p = { nom: document.getElementById('p-nom').value, prix: parseInt(document.getElementById('p-prix').value), stock: parseInt(document.getElementById('p-qty').value) };
         await fetch('/api/ajouter', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
         location.reload();
     }
 
     async function encaisser() {
-    try {
-        const totalStr = document.getElementById('total-panier').innerText;
-        const total = parseInt(totalStr.replace(/[\s,]/g, '')); 
+        const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
         const recu = parseInt(document.getElementById('pay-recu').value);
-
-        if (panier.length === 0 || !recu || recu < total) {
-            alert("⚠️ Vérifiez le panier ou le montant reçu !");
-            return;
-        }
+        if (panier.length === 0 || isNaN(recu) || recu < total) return alert("Vérifiez le panier ou le montant reçu.");
 
         const res = await fetch('/api/vendre', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ panier, total, encaisse: recu, monnaie: recu - total })
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ panier, total, encaisse: recu, monnaie: recu-total })
         });
         const data = await res.json();
 
         if (data.success) {
-            // --- ON REMPLIT LE TICKET ---
             document.getElementById('t-date').innerText = "Date: " + data.ticket.date;
-            document.getElementById('t-id').innerText = "Vente ID: " + data.ticket.id;
-            document.getElementById('t-total').innerText = "TOTAL: " + total.toLocaleString() + " FCFA";
+            document.getElementById('t-id').innerText = "ID: " + data.ticket.id;
+            document.getElementById('t-total').innerText = "TOTAL: " + total.toLocaleString() + " " + devise;
             document.getElementById('t-list').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite}</div>`).join('');
             
-            // --- ON GÉNÈRE LE QR CODE ---
-            const qrCanvas = document.getElementById('t-qr');
-            await QRCode.toCanvas(qrCanvas, "VENTE-" + data.ticket.id, { width: 150 });
+            await QRCode.toCanvas(document.getElementById('t-qr'), "ID-" + data.ticket.id, { width: 160 });
 
-            // --- LE SECRET : ON ATTEND UN PEU AVANT D'IMPRIMER ---
-            setTimeout(() => {
-                window.print();
-                location.reload(); 
-            }, 500); // On attend 0.5 seconde pour que le QR Code apparaisse
+            document.getElementById('ticket-print').style.display = 'block';
+            setTimeout(() => { window.print(); location.reload(); }, 800);
         }
-    } catch (error) {
-        alert("Erreur technique, vérifiez la console F12");
     }
-}
 
     function afficherTransactions(ventes) {
-        document.getElementById('table-ventes').innerHTML = ventes.map(v => `
-            <tr><td>${v.date}</td><td>${v.id}</td>
-            <td>${v.articles.length} art.</td><td><b>${v.total} FCFA</b></td></tr>
-        `).join('');
+        document.getElementById('table-ventes').innerHTML = `<thead><tr><th>Date</th><th>Articles</th><th>Total</th></tr></thead>` + 
+        ventes.map(v => `<tr><td>${v.date}</td><td>${v.articles.length} art.</td><td>${v.total.toLocaleString()} ${devise}</td></tr>`).join('');
     }
 
     rafraichir();
