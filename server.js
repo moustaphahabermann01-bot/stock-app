@@ -12,12 +12,12 @@ const DATA_FILE = './produits.json';
 const VENTES_FILE = './ventes.json';
 const CONFIG_FILE = './config.json';
 
-// Initialisation des fichiers
+// Initialisation des fichiers si inexistants
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
 if (!fs.existsSync(VENTES_FILE)) fs.writeFileSync(VENTES_FILE, '[]');
 if (!fs.existsSync(CONFIG_FILE)) fs.writeFileSync(CONFIG_FILE, JSON.stringify({ investissement: 0, devise: 'FCFA' }));
 
-// --- API CONFIG & STATS ---
+// --- ROUTES CONFIGURATION ---
 app.get('/api/stats', (req, res) => {
     const produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const ventes = JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'));
@@ -34,7 +34,7 @@ app.post('/api/config', (req, res) => {
     res.json({ success: true });
 });
 
-// --- API PRODUITS ---
+// --- ROUTES PRODUITS ---
 app.get('/api/produits', (req, res) => res.json(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))));
 
 app.post('/api/ajouter', (req, res) => {
@@ -51,14 +51,22 @@ app.delete('/api/produits/:nom', (req, res) => {
     res.json({ success: true });
 });
 
-// --- API VENTES ---
+// --- ROUTES VENTES ---
 app.get('/api/ventes', (req, res) => res.json(JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'))));
 
 app.post('/api/vendre', (req, res) => {
     const { panier, total, encaisse, monnaie } = req.body;
     let produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     let ventes = JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'));
-    const nouvelleVente = { id: uuidv4().slice(0,8), date: new Date().toLocaleString(), articles: panier, total, encaisse, monnaie };
+    
+    const nouvelleVente = { 
+        id: uuidv4().slice(0,8).toUpperCase(), 
+        date: new Date().toLocaleString('fr-FR'), 
+        articles: panier, 
+        total, 
+        encaisse, 
+        monnaie 
+    };
     
     panier.forEach(item => {
         const idx = produits.findIndex(p => p.nom === item.nom);
@@ -71,4 +79,4 @@ app.post('/api/vendre', (req, res) => {
     res.json({ success: true, ticket: nouvelleVente });
 });
 
-app.listen(3000, () => console.log("🚀 Serveur Global lancé sur http://localhost:3000"));
+app.listen(3000, () => console.log("🚀 Serveur Business Pro sur http://localhost:3000"));

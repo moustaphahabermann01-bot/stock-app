@@ -2,60 +2,69 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Logiciel de Gestion Universel</title>
+    <title>Gestion Pro - Version Investissement</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-        :root { --dark: #2c3e50; --green: #27ae60; --red: #e74c3c; --blue: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        :root { --dark: #2c3e50; --green: #27ae60; --red: #e74c3c; --blue: #3498db; --gray: #95a5a6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: var(--dark); }
         
-        .header-bar { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* Layout */
+        .container { max-width: 1200px; margin: auto; }
+        .header { background: var(--dark); color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
         
-        .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-        .section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        /* Sections */
+        .main-content { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
+        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
+        /* Tables */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; color: var(--gray); text-transform: uppercase; font-size: 12px; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
 
-        .benef-neg { color: var(--red); font-weight: bold; }
-        .benef-pos { color: var(--green); font-weight: bold; }
+        /* Buttons */
+        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-add { background: var(--blue); color: white; }
+        .btn-pay { background: var(--green); color: white; width: 100%; font-size: 18px; padding: 15px; margin-top: 15px; }
+        .btn-del { background: var(--red); color: white; padding: 5px 10px; }
 
-        #ticket-print { display: none; text-align: center; padding: 20px; border: 1px solid #000; width: 280px; background: white; }
-        @media print { body * { display: none !important; } #ticket-print, #ticket-print * { display: block !important; } }
+        /* Ticket Style (Supermarché) */
+        #ticket-print { display: none; width: 300px; padding: 15px; background: white; border: 1px dashed #ccc; font-family: 'Courier New', Courier, monospace; text-align: center; }
+        #ticket-print table { font-size: 13px; margin: 10px 0; }
+        @media print { body * { display: none !important; } #ticket-print, #ticket-print * { display: block !important; margin: auto; } }
     </style>
 </head>
 <body>
 
-    <div class="header-bar">
-        <h2>Business Manager Pro</h2>
-        <div>
-            🌍 Devise : 
-            <select id="devise-globale" onchange="changerDevise(this.value)" style="padding: 5px; border-radius: 5px;">
-                <option value="FCFA">FCFA (Afrique)</option>
-                <option value="€">EURO (€)</option>
-                <option value="$">DOLLAR ($)</option>
-                <option value="£">LIVRE (£)</option>
-                <option value="DH">DIRHAM (DH)</option>
-            </select>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1 style="margin:0;">Business Manager Pro</h1>
+        <select id="devise-globale" onchange="changerDevise(this.value)" style="padding:8px; border-radius:8px;">
+            <option value="FCFA">FCFA (Afrique)</option>
+            <option value="€">EUR (€)</option>
+            <option value="$">USD ($)</option>
+            <option value="£">GBP (£)</option>
+            <option value="¥">CNY (¥)</option>
+            <option value="DH">AED (DH)</option>
+        </select>
     </div>
 
-    <div class="dashboard">
-        <div class="card"><h3>Investissement</h3><input type="number" id="invest-input" onchange="majInvest(this.value)" style="width:100px; text-align:center;"></div>
-        <div class="card"><h3>Ventes</h3><p id="st-ca">0</p></div>
-        <div class="card"><h3>Bénéfice Réel</h3><p id="st-benef">0</p></div>
-        <div class="card"><h3>Valeur Stock</h3><p id="st-stock">0</p></div>
+    <div class="grid">
+        <div class="card"><h4>Investissement</h4><input type="number" id="invest-input" onchange="majInvest(this.value)" style="width:80%; padding:5px; text-align:center;"></div>
+        <div class="card"><h4>Ventes (CA)</h4><h2 id="st-ca">0</h2></div>
+        <div class="card"><h4>Bénéfice Réel</h4><h2 id="st-benef">0</h2></div>
+        <div class="card"><h4>Valeur Stock</h4><h2 id="st-stock">0</h2></div>
     </div>
 
-    <div class="main-grid">
-        <div class="section">
-            <h2>📦 Inventaire</h2>
+    <div class="main-content">
+        <div class="box">
+            <h3>📦 Inventaire (Prix Vente uniquement)</h3>
             <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <input id="p-nom" placeholder="Nom">
-                <input id="p-prix" type="number" placeholder="Prix Vente">
-                <input id="p-qty" type="number" placeholder="Quantité">
-                <button onclick="ajouter()" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Ajouter</button>
+                <input id="p-nom" placeholder="Nom du produit" style="flex:2; padding:10px;">
+                <input id="p-prix" type="number" placeholder="Prix Vente" style="flex:1; padding:10px;">
+                <input id="p-qty" type="number" placeholder="Stock" style="flex:1; padding:10px;">
+                <button onclick="ajouterProduit()" class="btn btn-add">AJOUTER</button>
             </div>
             <table>
                 <thead><tr><th>Produit</th><th>Prix</th><th>Stock</th><th>Action</th></tr></thead>
@@ -63,32 +72,37 @@
             </table>
         </div>
 
-        <div class="section">
-            <h2>🛒 Caisse</h2>
-            <div id="panier-liste" style="min-height:150px;"></div>
-            <hr>
-            <h2 id="total-panier-display">Total: 0</h2>
-            <input type="number" id="pay-recu" placeholder="Montant reçu" style="width:100%; padding:10px; font-size:18px;">
-            <button onclick="encaisser()" style="width:100%; background:var(--green); color:white; border:none; padding:15px; margin-top:15px; border-radius:8px; font-size:18px; cursor:pointer;">PAYER & TICKET (QR)</button>
+        <div class="box">
+            <h3>🛒 Caisse Rapide</h3>
+            <div id="panier-liste" style="min-height:100px; border:1px solid #f0f0f0; border-radius:10px; padding:10px; background:#fafafa;"></div>
+            <h2 id="total-display" style="text-align:right; margin-top:15px;">Total: 0 FCFA</h2>
+            <input type="number" id="pay-recu" placeholder="Espèces reçues" style="width:100%; box-sizing:border-box; padding:12px; font-size:20px; border:2px solid #eee; border-radius:10px;">
+            <button onclick="encaisser()" class="btn btn-pay">PAYER & TICKET (QR)</button>
         </div>
     </div>
 
-    <div class="section" style="margin-top:20px;">
-        <h2>📜 Transactions Récentes</h2>
+    <div class="box" style="margin-top:20px;">
+        <h3>📜 Historique des Ventes</h3>
         <table id="table-ventes"></table>
     </div>
+</div>
 
-    <div id="ticket-print">
-        <h3 id="t-shop-name">MON BUSINESS</h3>
-        <p id="t-date"></p>
-        <p id="t-id"></p>
-        <hr>
-        <div id="t-list" style="text-align:left;"></div>
-        <hr>
-        <h3 id="t-total"></h3>
-        <canvas id="t-qr" style="margin: 10px auto;"></canvas>
-        <p>Merci de votre visite !</p>
-    </div>
+<div id="ticket-print">
+    <h3 style="margin-bottom:5px;">MON BUSINESS</h3>
+    <p id="t-date" style="font-size:12px; margin:2px;"></p>
+    <p id="t-id" style="font-size:11px; margin:2px; color:#555;"></p>
+    <hr>
+    <table style="width:100%;">
+        <thead><tr><th style="background:none;">Désignation</th><th style="background:none;">Qté</th><th style="background:none; text-align:right;">Montant</th></tr></thead>
+        <tbody id="t-list"></tbody>
+    </table>
+    <hr>
+    <h2 id="t-total" style="margin:10px 0;"></h2>
+    <p id="t-paiement" style="font-size:12px; font-weight:bold;"></p>
+    <canvas id="t-qr" style="margin: 15px auto;"></canvas>
+    <p style="font-size:11px;">Scannez pour vérifier la facture</p>
+    <p style="margin-top:10px;">Merci de votre visite !</p>
+</div>
 
 <script>
     let produits = [], panier = [], devise = "FCFA";
@@ -106,7 +120,7 @@
         
         const b = document.getElementById('st-benef');
         b.innerText = stats.beneficeReel.toLocaleString() + " " + devise;
-        b.className = stats.beneficeReel >= 0 ? "benef-pos" : "benef-neg";
+        b.style.color = stats.beneficeReel >= 0 ? "#27ae60" : "#e74c3c";
 
         afficherProduits();
         afficherTransactions(ventes);
@@ -114,11 +128,15 @@
 
     function afficherProduits() {
         document.getElementById('p-liste').innerHTML = produits.map(p => `
-            <tr><td><b>${p.nom}</b></td><td>${p.prix.toLocaleString()} ${devise}</td><td>${p.stock}</td>
-            <td>
-                <button onclick="addPanier('${p.nom}')">+</button>
-                <button onclick="supprimer('${p.nom}')" style="background:var(--red); color:white; border:none; border-radius:3px; cursor:pointer;">🗑️</button>
-            </td></tr>
+            <tr>
+                <td><b>${p.nom}</b></td>
+                <td>${p.prix.toLocaleString()} ${devise}</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button onclick="addPanier('${p.nom}')" class="btn btn-add" style="padding:2px 8px;">+</button>
+                    <button onclick="supprimer('${p.nom}')" class="btn btn-del" style="margin-left:5px;">🗑️</button>
+                </td>
+            </tr>
         `).join('');
     }
 
@@ -131,8 +149,13 @@
 
     function majCaisse() {
         const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
-        document.getElementById('total-panier-display').innerText = "Total: " + total.toLocaleString() + " " + devise;
-        document.getElementById('panier-liste').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite} (${(i.prix*i.quantite).toLocaleString()} ${devise})</div>`).join('');
+        document.getElementById('total-display').innerText = "Total: " + total.toLocaleString() + " " + devise;
+        document.getElementById('panier-liste').innerHTML = panier.map(i => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>${i.nom} x${i.quantite}</span>
+                <span>${(i.prix * i.quantite).toLocaleString()} ${devise}</span>
+            </div>
+        `).join('');
     }
 
     async function supprimer(nom) {
@@ -152,8 +175,9 @@
         rafraichir();
     }
 
-    async function ajouter() {
+    async function ajouterProduit() {
         const p = { nom: document.getElementById('p-nom').value, prix: parseInt(document.getElementById('p-prix').value), stock: parseInt(document.getElementById('p-qty').value) };
+        if(!p.nom || !p.prix) return alert("Remplissez les champs !");
         await fetch('/api/ajouter', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
         location.reload();
     }
@@ -161,7 +185,7 @@
     async function encaisser() {
         const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
         const recu = parseInt(document.getElementById('pay-recu').value);
-        if (panier.length === 0 || isNaN(recu) || recu < total) return alert("Vérifiez le panier ou le montant reçu.");
+        if (panier.length === 0 || isNaN(recu) || recu < total) return alert("Vérifiez le panier ou l'argent reçu.");
 
         const res = await fetch('/api/vendre', {
             method:'POST',
@@ -171,12 +195,24 @@
         const data = await res.json();
 
         if (data.success) {
-            document.getElementById('t-date').innerText = "Date: " + data.ticket.date;
-            document.getElementById('t-id').innerText = "ID: " + data.ticket.id;
+            // Remplissage du ticket Supermarché
+            document.getElementById('t-date').innerText = data.ticket.date;
+            document.getElementById('t-id').innerText = "FACTURE N° " + data.ticket.id;
             document.getElementById('t-total').innerText = "TOTAL: " + total.toLocaleString() + " " + devise;
-            document.getElementById('t-list').innerHTML = panier.map(i => `<div>${i.nom} x${i.quantite}</div>`).join('');
+            document.getElementById('t-paiement').innerText = `REÇU: ${recu} | RENDU: ${recu-total}`;
             
-            await QRCode.toCanvas(document.getElementById('t-qr'), "ID-" + data.ticket.id, { width: 160 });
+            document.getElementById('t-list').innerHTML = panier.map(i => `
+                <tr>
+                    <td style="text-align:left;">${i.nom}</td>
+                    <td>x${i.quantite}</td>
+                    <td style="text-align:right;">${(i.prix * i.quantite).toLocaleString()}</td>
+                </tr>
+            `).join('');
+            
+            // CRÉATION DU RÉSUMÉ POUR LE QR CODE
+            const scanData = `--- FACTURE --- \nID: ${data.ticket.id}\nDate: ${data.ticket.date}\nArticles: ${panier.length}\nTotal: ${total} ${devise}\n---------------`;
+            
+            await QRCode.toCanvas(document.getElementById('t-qr'), scanData, { width: 140, margin: 2 });
 
             document.getElementById('ticket-print').style.display = 'block';
             setTimeout(() => { window.print(); location.reload(); }, 800);
@@ -184,8 +220,8 @@
     }
 
     function afficherTransactions(ventes) {
-        document.getElementById('table-ventes').innerHTML = `<thead><tr><th>Date</th><th>Articles</th><th>Total</th></tr></thead>` + 
-        ventes.map(v => `<tr><td>${v.date}</td><td>${v.articles.length} art.</td><td>${v.total.toLocaleString()} ${devise}</td></tr>`).join('');
+        document.getElementById('table-ventes').innerHTML = `<thead><tr><th>Date</th><th>ID</th><th>Articles</th><th>Total</th></tr></thead>` + 
+        ventes.map(v => `<tr><td>${v.date}</td><td><small>${v.id}</small></td><td>${v.articles.length} art.</td><td>${v.total.toLocaleString()} ${devise}</td></tr>`).join('');
     }
 
     rafraichir();
