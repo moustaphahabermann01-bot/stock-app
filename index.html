@@ -169,18 +169,36 @@
     }
 
     function afficherProduits() {
-        document.getElementById('p-liste').innerHTML = produits.map(p => `
-            <tr>
-                <td><b>${p.nom}</b><br><small style="color:var(--gray);">${p.categorie || 'Général'}</small></td>
+    document.getElementById('p-liste').innerHTML = produits.map(p => {
+        // Logique d'alerte : rouge si stock < 3, orange si stock < 10
+        let couleurStock = "inherit";
+        let messageAlerte = "";
+        
+        if(p.stock <= 3) {
+            couleurStock = "var(--red)";
+            messageAlerte = "⚠️ Réapprovisionner !";
+        } else if(p.stock <= 10) {
+            couleurStock = "#f39c12"; // Orange
+        }
+
+        return `
+            <tr style="background: ${p.stock <= 3 ? '#fff5f5' : 'transparent'}">
+                <td>
+                    <b>${p.nom}</b><br>
+                    <small style="color:var(--gray);">${p.categorie || 'Général'}</small>
+                </td>
                 <td>${p.prix.toLocaleString()} ${devise}</td>
-                <td style="font-weight:bold; color:${p.stock < 5 ? 'var(--red)' : 'inherit'}">${p.stock}</td>
+                <td style="font-weight:bold; color:${couleurStock}">
+                    ${p.stock} <br>
+                    <small style="font-size:10px;">${messageAlerte}</small>
+                </td>
                 <td>
                     <button onclick="addPanier('${p.nom}')" class="btn" style="background:var(--green); padding:5px 10px;">+ Vendre</button>
-                    <button onclick="supprimer('${p.nom}')" class="btn btn-del" style="margin-left:5px;">🗑️</button>
                 </td>
             </tr>
-        `).join('');
-    }
+        `;
+    }).join('');
+}
 
     function addPanier(nom) {
         const p = produits.find(x => x.nom === nom);
@@ -218,15 +236,22 @@
     }
 
     async function ajouterProduit() {
-        const p = { nom: document.getElementById('p-nom').value, prix: parseInt(document.getElementById('p-prix').value), stock: parseInt(document.getElementById('p-qty').value), categorie: document.getElementById('p-cat').value };
-        if(!p.nom || isNaN(p.prix)) return alert("Saisir nom et prix !");
-        await fetch('/api/ajouter', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
-        location.reload();
-    }
+    if (!await verifierAcces()) return; // Demande le code avant de continuer
+    
+    const p = { 
+        nom: document.getElementById('p-nom').value, 
+        // ... (le reste de ton code actuel)
+    };
+    // ...
+}
 
     async function supprimer(nom) {
-        if(confirm(`Supprimer ${nom} ?`)) { await fetch(`/api/produits/${encodeURIComponent(nom)}`, { method:'DELETE' }); rafraichir(); }
+    if (!await verifierAcces()) return; // Demande le code avant de supprimer
+    
+    if(confirm(`Supprimer ${nom} ?`)) {
+        // ... (le reste de ton code actuel)
     }
+}
 
     async function encaisser() {
         const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
@@ -272,6 +297,18 @@
     async function majInvest(val) { await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({investissement: parseInt(val)}) }); rafraichir(); }
 
     rafraichir();
+    
+    async function verifierAcces() {
+    const stats = await (await fetch('/api/stats')).json();
+    const codeSaisi = prompt("Entrez le code administrateur pour modifier le stock :");
+    
+    if (codeSaisi === stats.codeAdmin) {
+        return true;
+    } else {
+        alert("Code incorrect ! Accès refusé.");
+        return false;
+    }
+}
 </script>
 </body>
 </html>

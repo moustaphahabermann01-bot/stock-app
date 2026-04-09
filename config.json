@@ -2,5 +2,6 @@
   "investissement": 0,
   "devise": "FCFA",
   "nomBoutique": "MA BOUTIQUE PRO",
-  "telephone": "+221 XX XXX XX XX"
+  "telephone": "+221 XX XXX XX XX",
+  "codeAdmin": "1234"
 }
