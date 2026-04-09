@@ -2,106 +2,88 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Gestion Pro - Version Investissement</title>
+    <title>Business Manager - Style Supeco</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-        :root { --dark: #2c3e50; --green: #27ae60; --red: #e74c3c; --blue: #3498db; --gray: #95a5a6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: var(--dark); }
+        :root { --dark: #2c3e50; --green: #27ae60; --red: #e74c3c; --blue: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .header { background: var(--dark); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .main-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
+        .box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .btn { border: none; padding: 10px; border-radius: 5px; cursor: pointer; color: white; }
         
-        /* Layout */
-        .container { max-width: 1200px; margin: auto; }
-        .header { background: var(--dark); color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        
-        /* Sections */
-        .main-content { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
-        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #f8f9fa; color: var(--gray); text-transform: uppercase; font-size: 12px; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-
-        /* Buttons */
-        .btn { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        .btn-add { background: var(--blue); color: white; }
-        .btn-pay { background: var(--green); color: white; width: 100%; font-size: 18px; padding: 15px; margin-top: 15px; }
-        .btn-del { background: var(--red); color: white; padding: 5px 10px; }
-
-        /* Ticket Style (Supermarché) */
-        #ticket-print { display: none; width: 300px; padding: 15px; background: white; border: 1px dashed #ccc; font-family: 'Courier New', Courier, monospace; text-align: center; }
-        #ticket-print table { font-size: 13px; margin: 10px 0; }
+        /* Style Ticket */
+        #ticket-print { display: none; width: 300px; padding: 15px; background: white; border: 1px dashed #000; font-family: 'Courier New', monospace; text-align: center; }
         @media print { body * { display: none !important; } #ticket-print, #ticket-print * { display: block !important; margin: auto; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1 style="margin:0;">Business Manager Pro</h1>
-        <select id="devise-globale" onchange="changerDevise(this.value)" style="padding:8px; border-radius:8px;">
-            <option value="FCFA">FCFA (Afrique)</option>
-            <option value="€">EUR (€)</option>
-            <option value="$">USD ($)</option>
-            <option value="£">GBP (£)</option>
-            <option value="¥">CNY (¥)</option>
-            <option value="DH">AED (DH)</option>
-        </select>
-    </div>
-
-    <div class="grid">
-        <div class="card"><h4>Investissement</h4><input type="number" id="invest-input" onchange="majInvest(this.value)" style="width:80%; padding:5px; text-align:center;"></div>
-        <div class="card"><h4>Ventes (CA)</h4><h2 id="st-ca">0</h2></div>
-        <div class="card"><h4>Bénéfice Réel</h4><h2 id="st-benef">0</h2></div>
-        <div class="card"><h4>Valeur Stock</h4><h2 id="st-stock">0</h2></div>
-    </div>
-
-    <div class="main-content">
-        <div class="box">
-            <h3>📦 Inventaire (Prix Vente uniquement)</h3>
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <input id="p-nom" placeholder="Nom du produit" style="flex:2; padding:10px;">
-                <input id="p-prix" type="number" placeholder="Prix Vente" style="flex:1; padding:10px;">
-                <input id="p-qty" type="number" placeholder="Stock" style="flex:1; padding:10px;">
-                <button onclick="ajouterProduit()" class="btn btn-add">AJOUTER</button>
-            </div>
-            <table>
-                <thead><tr><th>Produit</th><th>Prix</th><th>Stock</th><th>Action</th></tr></thead>
-                <tbody id="p-liste"></tbody>
-            </table>
-        </div>
-
-        <div class="box">
-            <h3>🛒 Caisse Rapide</h3>
-            <div id="panier-liste" style="min-height:100px; border:1px solid #f0f0f0; border-radius:10px; padding:10px; background:#fafafa;"></div>
-            <h2 id="total-display" style="text-align:right; margin-top:15px;">Total: 0 FCFA</h2>
-            <input type="number" id="pay-recu" placeholder="Espèces reçues" style="width:100%; box-sizing:border-box; padding:12px; font-size:20px; border:2px solid #eee; border-radius:10px;">
-            <button onclick="encaisser()" class="btn btn-pay">PAYER & TICKET (QR)</button>
+<div class="header">
+    <div>
+        <h1 style="margin:0;">Business Pro</h1>
+        <div style="margin-top:10px; display:flex; gap:10px;">
+            <input id="cfg-nom" placeholder="Nom Boutique" onchange="majBoutique()" style="padding:5px; border-radius:4px; border:none;">
+            <input id="cfg-tel" placeholder="Téléphone" onchange="majBoutique()" style="padding:5px; border-radius:4px; border:none;">
         </div>
     </div>
+    <select id="devise-globale" onchange="changerDevise(this.value)" style="padding:10px; border-radius:8px;">
+        <option value="FCFA">FCFA (Sénégal)</option>
+        <option value="€">EURO (€)</option>
+        <option value="$">DOLLAR ($)</option>
+        <option value="£">LIVRE (£)</option>
+    </select>
+</div>
 
-    <div class="box" style="margin-top:20px;">
-        <h3>📜 Historique des Ventes</h3>
-        <table id="table-ventes"></table>
+<div class="grid">
+    <div class="card"><h4>Investissement</h4><input type="number" id="invest-input" onchange="majInvest(this.value)" style="width:80%; text-align:center;"></div>
+    <div class="card"><h4>Ventes</h4><h2 id="st-ca">0</h2></div>
+    <div class="card"><h4>Bénéfice</h4><h2 id="st-benef">0</h2></div>
+    <div class="card"><h4>Valeur Stock</h4><h2 id="st-stock">0</h2></div>
+</div>
+
+<div class="main-grid">
+    <div class="box">
+        <h3>📦 Gestion du Stock</h3>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input id="p-nom" placeholder="Produit" style="flex:2; padding:8px;">
+            <input id="p-prix" type="number" placeholder="Prix" style="flex:1; padding:8px;">
+            <input id="p-qty" type="number" placeholder="Qté" style="flex:1; padding:8px;">
+            <button onclick="ajouter()" class="btn" style="background:var(--blue);">AJOUTER</button>
+        </div>
+        <table>
+            <thead><tr><th>Nom</th><th>Prix</th><th>Stock</th><th>Action</th></tr></thead>
+            <tbody id="p-liste"></tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h3>🛒 Caisse Rapide</h3>
+        <div id="panier-liste" style="min-height:150px; background:#f9f9f9; padding:10px; border-radius:8px;"></div>
+        <h2 id="total-panier" style="text-align:right;">Total: 0</h2>
+        <input type="number" id="pay-recu" placeholder="Argent reçu" style="width:100%; padding:12px; font-size:20px; border:2px solid #ddd; border-radius:8px; box-sizing:border-box;">
+        <button onclick="encaisser()" class="btn" style="background:var(--green); width:100%; font-size:18px; margin-top:15px; padding:15px;">PAYER & TICKET (QR)</button>
     </div>
 </div>
 
 <div id="ticket-print">
-    <h3 style="margin-bottom:5px;">MON BUSINESS</h3>
-    <p id="t-date" style="font-size:12px; margin:2px;"></p>
-    <p id="t-id" style="font-size:11px; margin:2px; color:#555;"></p>
+    <h2 id="t-shop-name" style="margin:0;">MA BOUTIQUE</h2>
+    <p id="t-tel" style="font-size:12px; margin:5px;"></p>
+    <p id="t-date" style="font-size:11px; margin:2px;"></p>
     <hr>
-    <table style="width:100%;">
-        <thead><tr><th style="background:none;">Désignation</th><th style="background:none;">Qté</th><th style="background:none; text-align:right;">Montant</th></tr></thead>
+    <table style="width:100%; font-size:12px;">
+        <thead><tr><th>Art.</th><th>Qté</th><th>Total</th></tr></thead>
         <tbody id="t-list"></tbody>
     </table>
     <hr>
-    <h2 id="t-total" style="margin:10px 0;"></h2>
-    <p id="t-paiement" style="font-size:12px; font-weight:bold;"></p>
-    <canvas id="t-qr" style="margin: 15px auto;"></canvas>
-    <p style="font-size:11px;">Scannez pour vérifier la facture</p>
-    <p style="margin-top:10px;">Merci de votre visite !</p>
+    <h2 id="t-total"></h2>
+    <p id="t-monnaie" style="font-size:12px;"></p>
+    <canvas id="t-qr" style="margin:10px auto;"></canvas>
+    <p style="font-size:10px;">Merci de votre visite !</p>
 </div>
 
 <script>
@@ -110,33 +92,29 @@
     async function rafraichir() {
         const stats = await (await fetch('/api/stats')).json();
         produits = await (await fetch('/api/produits')).json();
-        const ventes = await (await fetch('/api/ventes')).json();
         devise = stats.devise;
 
-        document.getElementById('devise-globale').value = devise;
+        document.getElementById('cfg-nom').value = stats.nomBoutique;
+        document.getElementById('cfg-tel').value = stats.telephone;
         document.getElementById('invest-input').value = stats.investissement;
         document.getElementById('st-ca').innerText = stats.caTotal.toLocaleString() + " " + devise;
         document.getElementById('st-stock').innerText = stats.valeurStock.toLocaleString() + " " + devise;
         
         const b = document.getElementById('st-benef');
         b.innerText = stats.beneficeReel.toLocaleString() + " " + devise;
-        b.style.color = stats.beneficeReel >= 0 ? "#27ae60" : "#e74c3c";
+        b.style.color = stats.beneficeReel >= 0 ? "green" : "red";
 
         afficherProduits();
-        afficherTransactions(ventes);
+        majCaisse();
     }
 
     function afficherProduits() {
         document.getElementById('p-liste').innerHTML = produits.map(p => `
-            <tr>
-                <td><b>${p.nom}</b></td>
-                <td>${p.prix.toLocaleString()} ${devise}</td>
-                <td>${p.stock}</td>
-                <td>
-                    <button onclick="addPanier('${p.nom}')" class="btn btn-add" style="padding:2px 8px;">+</button>
-                    <button onclick="supprimer('${p.nom}')" class="btn btn-del" style="margin-left:5px;">🗑️</button>
-                </td>
-            </tr>
+            <tr><td><b>${p.nom}</b></td><td>${p.prix.toLocaleString()} ${devise}</td><td>${p.stock}</td>
+            <td>
+                <button onclick="addPanier('${p.nom}')" class="btn" style="background:var(--green); padding:2px 8px;">+</button>
+                <button onclick="supprimer('${p.nom}')" class="btn" style="background:var(--red); padding:2px 8px; margin-left:5px;">🗑️</button>
+            </td></tr>
         `).join('');
     }
 
@@ -149,13 +127,8 @@
 
     function majCaisse() {
         const total = panier.reduce((s, i) => s + (i.prix * i.quantite), 0);
-        document.getElementById('total-display').innerText = "Total: " + total.toLocaleString() + " " + devise;
-        document.getElementById('panier-liste').innerHTML = panier.map(i => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                <span>${i.nom} x${i.quantite}</span>
-                <span>${(i.prix * i.quantite).toLocaleString()} ${devise}</span>
-            </div>
-        `).join('');
+        document.getElementById('total-panier').innerText = "Total: " + total.toLocaleString() + " " + devise;
+        document.getElementById('panier-liste').innerHTML = panier.map(i => `<div style="display:flex; justify-content:space-between;"><span>${i.nom} x${i.quantite}</span><span>${(i.prix*i.quantite).toLocaleString()}</span></div>`).join('');
     }
 
     async function supprimer(nom) {
@@ -170,14 +143,20 @@
         rafraichir();
     }
 
+    async function majBoutique() {
+        const nom = document.getElementById('cfg-nom').value;
+        const tel = document.getElementById('cfg-tel').value;
+        await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nomBoutique: nom, telephone: tel}) });
+        rafraichir();
+    }
+
     async function majInvest(val) {
         await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({investissement: parseInt(val)}) });
         rafraichir();
     }
 
-    async function ajouterProduit() {
+    async function ajouter() {
         const p = { nom: document.getElementById('p-nom').value, prix: parseInt(document.getElementById('p-prix').value), stock: parseInt(document.getElementById('p-qty').value) };
-        if(!p.nom || !p.prix) return alert("Remplissez les champs !");
         await fetch('/api/ajouter', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
         location.reload();
     }
@@ -195,33 +174,19 @@
         const data = await res.json();
 
         if (data.success) {
-            // Remplissage du ticket Supermarché
+            document.getElementById('t-shop-name').innerText = document.getElementById('cfg-nom').value;
+            document.getElementById('t-tel').innerText = "Tél: " + document.getElementById('cfg-tel').value;
             document.getElementById('t-date').innerText = data.ticket.date;
-            document.getElementById('t-id').innerText = "FACTURE N° " + data.ticket.id;
             document.getElementById('t-total').innerText = "TOTAL: " + total.toLocaleString() + " " + devise;
-            document.getElementById('t-paiement').innerText = `REÇU: ${recu} | RENDU: ${recu-total}`;
+            document.getElementById('t-monnaie').innerText = `REÇU: ${recu} | RENDU: ${recu-total}`;
+            document.getElementById('t-list').innerHTML = panier.map(i => `<tr><td>${i.nom}</td><td>x${i.quantite}</td><td>${(i.prix*i.quantite).toLocaleString()}</td></tr>`).join('');
             
-            document.getElementById('t-list').innerHTML = panier.map(i => `
-                <tr>
-                    <td style="text-align:left;">${i.nom}</td>
-                    <td>x${i.quantite}</td>
-                    <td style="text-align:right;">${(i.prix * i.quantite).toLocaleString()}</td>
-                </tr>
-            `).join('');
-            
-            // CRÉATION DU RÉSUMÉ POUR LE QR CODE
-            const scanData = `--- FACTURE --- \nID: ${data.ticket.id}\nDate: ${data.ticket.date}\nArticles: ${panier.length}\nTotal: ${total} ${devise}\n---------------`;
-            
-            await QRCode.toCanvas(document.getElementById('t-qr'), scanData, { width: 140, margin: 2 });
+            const scanData = `FACTURE ${data.ticket.id}\nTotal: ${total} ${devise}\nMerci !`;
+            await QRCode.toCanvas(document.getElementById('t-qr'), scanData, { width: 140 });
 
             document.getElementById('ticket-print').style.display = 'block';
             setTimeout(() => { window.print(); location.reload(); }, 800);
         }
-    }
-
-    function afficherTransactions(ventes) {
-        document.getElementById('table-ventes').innerHTML = `<thead><tr><th>Date</th><th>ID</th><th>Articles</th><th>Total</th></tr></thead>` + 
-        ventes.map(v => `<tr><td>${v.date}</td><td><small>${v.id}</small></td><td>${v.articles.length} art.</td><td>${v.total.toLocaleString()} ${devise}</td></tr>`).join('');
     }
 
     rafraichir();

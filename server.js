@@ -12,19 +12,35 @@ const DATA_FILE = './produits.json';
 const VENTES_FILE = './ventes.json';
 const CONFIG_FILE = './config.json';
 
-// Initialisation des fichiers si inexistants
+// Initialisation des fichiers de données
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
 if (!fs.existsSync(VENTES_FILE)) fs.writeFileSync(VENTES_FILE, '[]');
-if (!fs.existsSync(CONFIG_FILE)) fs.writeFileSync(CONFIG_FILE, JSON.stringify({ investissement: 0, devise: 'FCFA' }));
+if (!fs.existsSync(CONFIG_FILE)) {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify({ 
+        investissement: 0, 
+        devise: 'FCFA',
+        nomBoutique: 'MA BOUTIQUE PRO',
+        adresse: 'Dakar, Sénégal',
+        telephone: '+221 XX XXX XX XX'
+    }, null, 2));
+}
 
-// --- ROUTES CONFIGURATION ---
+// --- API CONFIGURATION & STATS ---
 app.get('/api/stats', (req, res) => {
     const produits = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     const ventes = JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'));
     const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
     const caTotal = ventes.reduce((sum, v) => sum + v.total, 0);
     const valeurStock = produits.reduce((sum, p) => sum + (p.stock * p.prix), 0);
-    res.json({ caTotal, valeurStock, beneficeReel: caTotal - config.investissement, investissement: config.investissement, devise: config.devise });
+    res.json({ 
+        caTotal, 
+        valeurStock, 
+        beneficeReel: caTotal - config.investissement, 
+        investissement: config.investissement, 
+        devise: config.devise,
+        nomBoutique: config.nomBoutique,
+        telephone: config.telephone
+    });
 });
 
 app.post('/api/config', (req, res) => {
@@ -34,7 +50,7 @@ app.post('/api/config', (req, res) => {
     res.json({ success: true });
 });
 
-// --- ROUTES PRODUITS ---
+// --- API PRODUITS (AVEC POUBELLE) ---
 app.get('/api/produits', (req, res) => res.json(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))));
 
 app.post('/api/ajouter', (req, res) => {
@@ -51,7 +67,7 @@ app.delete('/api/produits/:nom', (req, res) => {
     res.json({ success: true });
 });
 
-// --- ROUTES VENTES ---
+// --- API VENTES (AVEC TICKET DÉTAILLÉ) ---
 app.get('/api/ventes', (req, res) => res.json(JSON.parse(fs.readFileSync(VENTES_FILE, 'utf8'))));
 
 app.post('/api/vendre', (req, res) => {
@@ -79,4 +95,4 @@ app.post('/api/vendre', (req, res) => {
     res.json({ success: true, ticket: nouvelleVente });
 });
 
-app.listen(3000, () => console.log("🚀 Serveur Business Pro sur http://localhost:3000"));
+app.listen(3000, () => console.log("🚀 Serveur lancé sur http://localhost:3000"));
